@@ -13,6 +13,9 @@ jobs:
     name: Backend CI
     runs-on: ubuntu-latest
 
+    env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/projecttracker
+
     defaults:
       run:
         working-directory: backend

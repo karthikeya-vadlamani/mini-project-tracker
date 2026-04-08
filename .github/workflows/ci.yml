@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/projecttracker
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/projecttracker
 
     defaults:
       run:
@@ -70,3 +70,18 @@ jobs:
 
       - name: Build frontend
         run: npm run build
+
+  docker-build:
+    name: Docker Build Validation
+    runs-on: ubuntu-latest
+    needs: [backend-ci, frontend-ci]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build backend Docker image
+        run: docker build -t mini-project-tracker-backend ./backend
+
+      - name: Build frontend Docker image
+        run: docker build -t mini-project-tracker-frontend ./frontend

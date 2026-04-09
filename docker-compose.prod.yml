@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: projecttracker-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: projecttracker
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    image: killuazoldyckk/mini-project-tracker-backend:dev
+    container_name: projecttracker-backend
+    restart: always
+    depends_on:
+      - postgres
+    env_file:
+      - ./backend/.env
+    ports:
+      - "5000:5000"
+
+  frontend:
+    image: killuazoldyckk/mini-project-tracker-frontend:dev
+    container_name: projecttracker-frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+
+volumes:
+  postgres_data:

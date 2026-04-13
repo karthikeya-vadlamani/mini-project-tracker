@@ -18,7 +18,7 @@ app.get("/health", async (req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
     res.status(200).json({
-      status: "UP",
+      status: "UP connected",
       database: "CONNECTED",
       service: "backend-api",
     });

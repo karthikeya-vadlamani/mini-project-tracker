@@ -111,3 +111,29 @@ jobs:
         run: |
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/mini-project-tracker-frontend:dev ./frontend
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/mini-project-tracker-frontend:dev
+
+  deploy-to-ec2:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+    needs: [docker-push]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "Connected to EC2"
+
+            cd ~/mini-project-tracker
+
+            echo "Pulling latest images..."
+            sudo docker compose -f docker-compose.prod.yml pull
+
+            echo "Restarting containers..."
+            sudo docker compose -f docker-compose.prod.yml up -d
+
+            echo "Deployment complete!"

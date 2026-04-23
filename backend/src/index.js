@@ -7,14 +7,16 @@ dotenv.config();
 
 const app = express();
 const prisma = new PrismaClient();
+const router = express.Router(); // Create the router
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-const PORT = process.env.PORT || 5000;
+// --- ROUTES (Attached to the router) ---
 
-// Health check
-app.get("/health", async (req, res) => {
+// Health check -> reachable at /api/health
+router.get("/health", async (req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
     res.status(200).json({
@@ -24,16 +26,12 @@ app.get("/health", async (req, res) => {
     });
   } catch (error) {
     console.error("[HEALTH_CHECK_ERROR]", error.message);
-    res.status(500).json({
-      status: "DOWN",
-      database: "DISCONNECTED",
-      service: "backend-api",
-    });
+    res.status(500).json({ status: "DOWN", database: "DISCONNECTED" });
   }
 });
 
-// Get all tasks
-app.get("/tasks", async (req, res) => {
+// Get all tasks -> reachable at /api/tasks
+router.get("/tasks", async (req, res) => {
   try {
     const tasks = await prisma.task.findMany({
       orderBy: { createdAt: "desc" },
@@ -45,24 +43,15 @@ app.get("/tasks", async (req, res) => {
   }
 });
 
-// Create task
-app.post("/tasks", async (req, res) => {
+// Create task -> reachable at /api/tasks
+router.post("/tasks", async (req, res) => {
   try {
     const { title, description, status, priority } = req.body;
-
-    if (!title) {
-      return res.status(400).json({ error: "Title is required" });
-    }
+    if (!title) return res.status(400).json({ error: "Title is required" });
 
     const task = await prisma.task.create({
-      data: {
-        title,
-        description,
-        status,
-        priority,
-      },
+      data: { title, description, status, priority },
     });
-
     res.status(201).json(task);
   } catch (error) {
     console.error("[CREATE_TASK_ERROR]", error.message);
@@ -70,22 +59,15 @@ app.post("/tasks", async (req, res) => {
   }
 });
 
-// Update task
-app.put("/tasks/:id", async (req, res) => {
+// Update task -> reachable at /api/tasks/:id
+router.put("/tasks/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const { title, description, status, priority } = req.body;
-
     const updatedTask = await prisma.task.update({
       where: { id },
-      data: {
-        title,
-        description,
-        status,
-        priority,
-      },
+      data: { title, description, status, priority },
     });
-
     res.json(updatedTask);
   } catch (error) {
     console.error("[UPDATE_TASK_ERROR]", error.message);
@@ -93,15 +75,11 @@ app.put("/tasks/:id", async (req, res) => {
   }
 });
 
-// Delete task
-app.delete("/tasks/:id", async (req, res) => {
+// Delete task -> reachable at /api/tasks/:id
+router.delete("/tasks/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-
-    await prisma.task.delete({
-      where: { id },
-    });
-
+    await prisma.task.delete({ where: { id } });
     res.json({ message: "Task deleted successfully" });
   } catch (error) {
     console.error("[DELETE_TASK_ERROR]", error.message);
@@ -109,6 +87,11 @@ app.delete("/tasks/:id", async (req, res) => {
   }
 });
 
+// --- APPLY ROUTER ---
+// This mounts all the routes above under the /api prefix
+app.use("/api", router);
+
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`[BACKEND_API] Server running on port ${PORT}`);
 });

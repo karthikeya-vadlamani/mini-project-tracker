@@ -79,7 +79,7 @@ function App() {
 
   return (
     <div className="container">
-      <h1>Mini Project Tracker</h1>
+      <h1>Mini Project Tracker :D</h1>
 
       <form className="task-form" onSubmit={createTask}>
         <input

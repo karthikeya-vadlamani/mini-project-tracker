@@ -9,6 +9,16 @@ const app = express();
 const prisma = new PrismaClient();
 const router = express.Router(); // Create the router
 
+import client from 'prom-client';
+
+const collectDefaultMetrics = client.collectDefaultMetrics;
+collectDefaultMetrics();
+
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', client.register.contentType);
+  res.end(await client.register.metrics());
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
